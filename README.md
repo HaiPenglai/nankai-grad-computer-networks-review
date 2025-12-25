@@ -29,17 +29,18 @@
     - [模拟真题：Socket 编程的所有经典函数](#模拟真题socket-编程的所有经典函数)
     - [潜在真题：CRC和CheckSum的描述（学长回忆补全版）](#潜在真题crc和checksum的描述学长回忆补全版)
     - [模拟真题：CRC与Checksum的计算](#模拟真题crc与checksum的计算)
-    - [潜在真题：TCP和UDP两大协议对比](#潜在真题tcp和udp两大协议对比)
+    - [潜在真题：要求背出TCP和UDP两大协议的特征](#潜在真题要求背出tcp和udp两大协议的特征)
     - [潜在真题：Wireshark 报文分析](#潜在真题wireshark-报文分析)
     - [模拟真题：TCP 三次握手与四次挥手](#模拟真题tcp-三次握手与四次挥手)
     - [潜在真题：子网掩码、网络地址和广播地址](#潜在真题子网掩码网络地址和广播地址)
     - [模拟真题：CIDR 与子网划分](#模拟真题cidr-与子网划分)
+    - [潜在真题：ABCDE类IP地址与子网划分（学长回忆补全版）](#潜在真题abcde类ip地址与子网划分学长回忆补全版)
+    - [模拟真题：子网划分大题](#模拟真题子网划分大题)
     - [潜在真题：TCP 报文首部分析（学长回忆补全版）](#潜在真题tcp-报文首部分析学长回忆补全版)
     - [模拟真题：IPv4 报文首部分析](#模拟真题ipv4-报文首部分析)
     - [潜在真题：以太网帧报文首部分析（学长回忆补全版）](#潜在真题以太网帧报文首部分析学长回忆补全版)
-    - [潜在真题：ABCDE类IP地址与子网划分（学长回忆补全版）](#潜在真题abcde类ip地址与子网划分学长回忆补全版)
-    - [模拟真题：子网划分大题](#模拟真题子网划分大题)
     - [潜在真题：FTP、SNMP、POP3协议（学长回忆补全版）](#潜在真题ftpsnmppop3协议学长回忆补全版)
+    - [第一套选择题（25道）](#第一套选择题25道)
 
 ### 文档格式约定
 
@@ -161,20 +162,20 @@
 - - **应用层**
   - **C/S** (Client/Server): 你打开微信PC版（**客户端**）给朋友发消息，消息被发送到腾讯的服务器（**服务端**），再由服务器转发给你朋友。
   - **P2P** (Peer-to-Peer): 下载电影时，你既从其他下载者（Peer）那里获取数据，也同时把你已有的数据上传给**其他人**（Peer），没有中心服务器。
-    - **基于TCP的**
-      - **HTTP** (HyperText Transfer Protocol): 在**浏览器**中输入网址后，浏览器向服务器发送HTTP请求，服务器返回网页的HTML代码，浏览器再将其显示出来。
-      - **HTTPS** (HyperText Transfer Protocol Secure): 你在购物网站输入银行卡号和密码时，HTTPS会对这些信息进行**加密**，防止在传输过程中被窃取。**记忆方法**：HTTP增加了一个S，表示**安全**(Secure)。
-      - **FTP** (File Transfer Protocol): 使用专门的FTP客户端软件（如FileZilla）连接到服务器，输入用户名和密码后，批量上传或下载网站**文件**。
-      - **SMTP** (Simple Mail Transfer Protocol): 你用邮箱客户端（如Foxmail）写完一封邮件点击“发送”时，邮件通过SMTP协议被**发送**到邮件服务器。
-      - **Telnet**: **远程登录**到一台没有图形界面的Linux服务器，像在本地一样通过命令行管理这台服务器（数据是明文传输，不安全）。
-      - **POP** (Post Office Protocol): 在邮箱客户端配置收信时，选择POP3会将服务器上的邮件**下载**到你的电脑本地，并通常会从服务器上删除邮件。
-      - **IMAP** (Internet Message Access Protocol): 改进了 POP3 邮件下载即删除的缺陷，将邮件**保留在服务器**上并实现双向同步，确保你在任何设备上对邮件的操作（如已读、删除）都能实时同步到服务器和其他设备。
-    - **基于UDP的**：
-      - **DNS** (Domain Name System): 在浏览器地址栏输入 `www.nankai.edu.cn`，DNS服务会将**域名解析**成南开大学服务器的IP地址，如 `219.243.47.23`。（注：普通查询用UDP，区域传送用TCP）
-      - **DHCP** (Dynamic Host Configuration Protocol): 你的手机连上咖啡店的Wi-Fi时，DHCP服务会自动分配给手机一个**IP地址**、网关和DNS服务器地址，让你能立刻上网。
-      - **TFTP** (Trivial File Transfer Protocol): 网络设备（如交换机）启动时，从一台服务器上**下载**一个小的**配置文件**，这个过程不需要用户名和密码，非常简单。**记忆方法**：FTP增加了一个T，表示**微小**(Trivial )。
-      - **SNMP** (Simple Network Management Protocol): 网络管理员使用管理软件，通过SNMP协议**查询**网络中所有交换机和路由器的当前**流量**、CPU占用率等状态信息。
-      - **记忆方法**：UDP正好含有D和P，2D(DNS、DHCP)，2P（TFTP、SNMP），其他的都是TCP。
+  - **基于TCP的**
+    - **HTTP** (HyperText Transfer Protocol): 在**浏览器**中输入网址后，浏览器向服务器发送HTTP请求，服务器返回网页的HTML代码，浏览器再将其显示出来。
+    - **HTTPS** (HyperText Transfer Protocol Secure): 你在购物网站输入银行卡号和密码时，HTTPS会对这些信息进行**加密**，防止在传输过程中被窃取。**记忆方法**：HTTP增加了一个S，表示**安全**(Secure)。
+    - **FTP** (File Transfer Protocol): 使用专门的FTP客户端软件（如FileZilla）连接到服务器，输入用户名和密码后，批量上传或下载网站**文件**。
+    - **SMTP** (Simple Mail Transfer Protocol): 你用邮箱客户端（如Foxmail）写完一封邮件点击“发送”时，邮件通过SMTP协议被**发送**到邮件服务器。
+    - **Telnet**: **远程登录**到一台没有图形界面的Linux服务器，像在本地一样通过命令行管理这台服务器（数据是明文传输，不安全）。
+    - **POP** (Post Office Protocol): 在邮箱客户端配置收信时，选择POP3会将服务器上的邮件**下载**到你的电脑本地，并通常会从服务器上删除邮件。
+    - **IMAP** (Internet Message Access Protocol): 改进了 POP3 邮件下载即删除的缺陷，将邮件**保留在服务器**上并实现双向同步，确保你在任何设备上对邮件的操作（如已读、删除）都能实时同步到服务器和其他设备。
+  - **基于UDP的**：
+    - **DNS** (Domain Name System): 在浏览器地址栏输入 `www.nankai.edu.cn`，DNS服务会将**域名解析**成南开大学服务器的IP地址，如 `219.243.47.23`。（注：普通查询用UDP，区域传送用TCP）
+    - **DHCP** (Dynamic Host Configuration Protocol): 你的手机连上咖啡店的Wi-Fi时，DHCP服务会自动分配给手机一个**IP地址**、网关和DNS服务器地址，让你能立刻上网。
+    - **TFTP** (Trivial File Transfer Protocol): 网络设备（如交换机）启动时，从一台服务器上**下载**一个小的**配置文件**，这个过程不需要用户名和密码，非常简单。**记忆方法**：FTP增加了一个T，表示**微小**(Trivial )。
+    - **SNMP** (Simple Network Management Protocol): 网络管理员使用管理软件，通过SNMP协议**查询**网络中所有交换机和路由器的当前**流量**、CPU占用率等状态信息。
+    - **记忆方法**：UDP正好含有D和P，2D(DNS、DHCP)，2P（TFTP、SNMP），其他的都是TCP。
 
 ---
 
@@ -684,9 +685,6 @@
 ---
 
 **简单理解：应用模式与 Socket 编程**
-
-- **C/S模式** (Client/Server): 你打开微信PC版（**客户端**）给朋友发消息，消息被发送到腾讯的服务器（**服务端**），再由服务器转发给你朋友。
-- **P2P模式** (Peer-to-Peer): 下载电影时，你既从其他下载者（Peer）那里获取数据，也同时把你已有的数据上传给**其他人**（Peer），没有中心服务器。
 
 *   **套接字 (Socket)**：网络编程的接口，就像**一扇门**，应用程序把数据推向这扇门，数据就能通过底层网络传到目的地。
 *   **流式套接字 (Stream Socket)**：类似于**打电话**，必须先拨通并建立连接，说话才有序、不丢失。
