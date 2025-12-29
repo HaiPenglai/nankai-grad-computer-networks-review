@@ -50,6 +50,7 @@
     - [第一套选择题（25道，50分）](#第一套选择题25道50分)
     - [第二套选择题（25道，50分）](#第二套选择题25道50分)
     - [潜在真题：ARP 报文分析 (Wireshark 截图版)](#潜在真题arp-报文分析-wireshark-截图版)
+    - [潜在真题：Socket 阻塞模式、字节对齐与 ARP 欺骗](#潜在真题socket-阻塞模式字节对齐与-arp-欺骗)
 
 ### 文档格式约定
 
@@ -734,10 +735,10 @@
 >
 > **简答：**
 >
-> 1.  **TCP 服务端**：`socket()` $\rightarrow$ `bind()`  $\rightarrow$ `listen()+accept()`  $\rightarrow$ `recv()/send()` $\rightarrow$ `close()`。
-> 2.  **TCP 客户端**：`socket()` $\rightarrow$ `connect()`  $\rightarrow$ `recv()/send()` $\rightarrow$ `close()`。
-> 3.  **UDP 服务端**：`socket()` $\rightarrow$ `bind()` $\rightarrow$ `recvfrom()/sendto()` $\rightarrow$ `close()`。
-> 4.  **UDP 客户端**：`socket()` $\rightarrow$ `recvfrom()/sendto()` $\rightarrow$ `close()`。
+> 1.  **TCP 服务端**：`socket()` $\rightarrow$ `bind()`  $\rightarrow$ `listen()+accept()`  $\rightarrow$ `recv()/send()` $\rightarrow$ `closesocket()`。
+> 2.  **TCP 客户端**：`socket()` $\rightarrow$ `connect()`  $\rightarrow$ `recv()/send()` $\rightarrow$ `closesocket()`。
+> 3.  **UDP 服务端**：`socket()` $\rightarrow$ `bind()` $\rightarrow$ `recvfrom()/sendto()` $\rightarrow$ `closesocket()`。
+> 4.  **UDP 客户端**：`socket()` $\rightarrow$ `recvfrom()/sendto()` $\rightarrow$ `closesocket()`。
 
 ---
 
@@ -761,7 +762,7 @@
     - **`sendto`**：UDP版本的发送数据。
     - **`recvfrom`**：UDP版本的接收数据。
 
-记忆方法：一定是`socket()`开始，`close()`结束，服务端`socket()`创建套接字之后需要`bind()`，只需要记忆不一样的部分，可以简化为：
+记忆方法：一定是`socket()`开始，`closesocket()`结束，服务端`socket()`创建套接字之后需要`bind()`，只需要记忆不一样的部分，可以简化为：
 
 1.  **TCP 服务端**：`listen()+accept()`  $\rightarrow$ `recv()/send()`
 2.  **TCP 客户端**：`connect()`  $\rightarrow$ `recv()/send()`
@@ -774,9 +775,128 @@
 
 ### 潜在真题：Socket编程完形填空
 
-
-
-
+> **简答题 (15 分)**
+>
+> **根据下面的 C++ Socket 编程代码的注释和上下文，填充 `[1]` 到 `[15]` 处的空白，完成一个支持 TCP 和 UDP 的简单网络服务程序。**
+>
+> 提示：按照总结的记忆要点，我试了一下，掌握之后填这15个空还是很顺利的。
+>
+> ![image-20251229190242208](./assets/image-20251229190242208.png)
+>
+> ```cpp
+> /********************头文件定义一些常量*********************/
+> #define MAX_CLIENT 10 //同时服务的并发连接数上限
+> #define MAX_BUF_SIZE 65535 //接收发送缓冲区大小
+> #define define UDP_SRV_PORT 5555 //Server的UDP端口号
+> #define TCP_SRV_PORT 1234 //Server的TCP端口号
+> 
+> /********************服务器端 TCP 侦听线程*********************/
+> //初始化 winsock2 环境
+> [ 1 ](MAKEWORD(2, 2), &wsa);
+> //创建用于侦听的 TCP Socket
+> SOCKET ListenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+> //... (获取本机名与IP地址代码) ...
+> ListenAddr.sin_port = htons((u_short)TCP_SRV_PORT);
+> //...
+> //绑定 TCP 侦听端口
+> bind([ 2 ], (sockaddr*)&ListenAddr, sizeof(ListenAddr));
+> //监听 Listen Socket
+> listen(ListenSocket, SOMAXCONN);
+> //在一个主循环中接收客户连接请求并创建服务线程
+> while (TRUE)
+> {
+>  //接受客户连接请求
+>  int iSockAddrLen = sizeof(TcpClientAddr);
+>  TcpSocket = [ 3 ](ListenSocket, (sockaddr*)&TcpClientAddr, &iSockAddrLen);
+>  //... (检查TCP线程数是否达到上限) ...
+>  //... (创建服务线程 CreateThread) ...
+> }
+> //程序执行完毕后释放资源
+> closesocket([ 4 ]);
+> WSACleanup();
+> 
+> /********************服务器端 TCP 服务线程(子线程)*********************/
+> //从线程参数中获取 TCP 套接字
+> SOCKET TcpSocket = ((TcpThreadParam*)lpParam)->socket;
+> //... (从线程参数中获取 Socket) ...
+> while (TRUE)
+> {
+>  //...
+>  //读取 Client 发来的请求
+>  TcpBytesReceived = [ 5 ]([6], ServerTCPBuf, sizeof(ServerTCPBuf), 0);
+>  //出错或者 Client 端关闭
+>  if (([ 7 ] == 0) || ([ 8 ] == SOCKET_ERROR))
+>  {
+>      break; //结束 TCP 服务线程
+>  }
+>  //... (处理请求) ...
+>  //将结果返回给客户端
+>  [ 9 ]([ 10 ], ServerTCPBuf, strlen(ServerTCPBuf), 0);
+> }
+> 
+> /********************服务器端 UDP 服务线程*********************/
+> //创建 UDP Server socket，该套接字用于数据报收发
+> SOCKET UDPSrvSocket = socket(AF_INET, [ 11 ], IPPROTO_UDP);
+> //... (绑定 UDP 端口) ...
+> while(TRUE)
+> {
+>  //接收 UDP 数据
+>  int iSockAddrLen = sizeof(sockaddr);
+>  [ 12 ](UDPSrvSocket, ServerUDPBuf, sizeof(ServerUDPBuf), 0, (sockaddr*)&UDPClientAddr, &iSockAddrLen);
+>  //... (处理数据) ...
+>  //发送 UDP 数据
+>  [ 13 ](UDPSrvSocket, ServerUDPBuf, strlen(ServerUDPBuf), 0, (sockaddr*)&UDPClientAddr, &iSockAddrLen);
+> }
+> 
+> /********************客户端程序*********************/
+> //... (创建 TCP Socket) ...
+> //使用 TCP Socket 连接服务器
+> [ 14 ](TCPSocket, (sockaddr*)&TCPServer, sizeof(TCPServer));
+> //... (进行相应操作) ...
+> switch(UserChoice)
+> {
+>  // ...
+>  case '3': //释放资源，退出程序
+>      closesocket(TCPSocket);
+>      closesocket(UDPSocket);
+>      [ 15 ]; //终止 Winsock
+>      return;
+> }
+> ```
+>
+> **题目分析**：
+>
+> *   关键是要记得关键字和出现位置，记忆要点：
+> *   **程序开头和结尾**：初始化/终止winsock，**WSAStartup**/**WSACleanup**。
+> *   **Socket创建和关闭**：服务端：`socket()` $\rightarrow$ `bind()` ...  $\rightarrow$ closesocket()，客户端：`socket()`  ...  $\rightarrow$ `closesocket()`
+>     - **socket()参数**：在创建Socket的函数中，对于TCP，填**SOCK_STREAM**。对于UDP，填**SOCK_DGRAM**
+> *   **关键函数**：
+>     1.  **TCP 服务端**：`listen()+accept()`  $\rightarrow$ `recv()/send()`
+>     2.  **TCP 客户端**：`connect()`  $\rightarrow$ `recv()/send()`
+>     3.  **UDP 服务端**：`recvfrom()/sendto()`
+>     4.  **UDP 客户端**：`recvfrom()/sendto()`
+> *   **主要函数的参数**：主要流程函数`bind()`、`listen()`、`recv()`...的第一个参数都是**Socket对象**。
+> *   **变量命名风格**：对于宏，比如**SOCK_STREAM**和**SOCK_DGRAM**，使用全大写+下划线。主要函数例如**connect**，全小写。WSAStartup/WSACleanup是一个例外，只有前4个字母大写。
+>
+> **简答：**
+>
+> | 空白序号 | 应填代码           | 相关注释                                         | 深层逻辑                                                     |
+> | :------- | :----------------- | :----------------------------------------------- | ------------------------------------------------------------ |
+> | **1**    | `WSAStartup`       | //初始化 winsock2 环境                           | **Windows Sockets API Startup**                              |
+> | **2**    | `ListenSocket`     | //绑定 TCP 侦听端口                              | **bind()**第一个参数是**Socket对象**，`ListenSocket`是这段程序唯一的Socket对象，肯定填它 |
+> | **3**    | `accept`           | //接受客户连接请求                               | TCP服务端`listen()+accept()`  $\rightarrow$ `recv()/send()`，listen之后填**accept**() |
+> | **4**    | `ListenSocket`     | //程序执行完毕后释放资源                         | **closesocket()**第一个参数是**Socket对象**，`ListenSocket`是这段程序唯一的Socket对象，肯定填它 |
+> | **5**    | `recv`             | //读取 Client 发来的请求                         | TCP服务端`listen()+accept()`  $\rightarrow$ `recv()/send()`，accept之后填**recv()**，因为注释是**读取** |
+> | **6**    | `TcpSocket`        | //读取 Client 发来的请求                         | **recv()**第一个参数是**Socket对象**，`TcpSocket`是这段程序唯一的Socket对象，肯定填它 |
+> | **7**    | `TcpBytesReceived` | //出错或者 Client 端关闭                         | `recv` 返回 0 表示客户端已**正常关闭**连接。这里`TcpBytesReceived`是唯一的返回值，肯定填它 |
+> | **8**    | `TcpBytesReceived` | //出错或者 Client 端关闭                         | `recv` 返回 `SOCKET_ERROR` 表示发生了**错误**。这里`TcpBytesReceived`是唯一的返回值，肯定填它 |
+> | **9**    | `send`             | //将结果返回给客户端                             | `listen()+accept()`  $\rightarrow$ `recv()/send()`，刚才填了`recv()`，现在说**结果返回**，就是**send()** |
+> | **10**   | `TcpSocket`        | //将结果返回给客户端                             | **send()**第一个参数是**Socket对象**，`TcpSocket`是这段程序唯一的Socket对象，肯定填它 |
+> | **11**   | `SOCK_DGRAM`       | //创建 UDP Server socket，该套接字用于数据报收发 | 创建TCP Socket时，socket函数中填写**SOCK_STREAM**，而创建UDP Socket时，socket函数中填写**SOCK_DGRAM** |
+> | **12**   | `recvfrom`         | //接收 UDP 数据                                  | 对于UDP，收发数据用`recvfrom()`和`sendto()`，所以填**recvfrom** |
+> | **13**   | `sendto`           | //发送 UDP 数据                                  | 同上，填**sendto**                                           |
+> | **14**   | `connect`          | //使用 TCP Socket 连接服务器                     | 连接函数用**connect**                                        |
+> | **15**   | `WSACleanup`       | //终止 Winsock                                   | **Windows Sockets API Cleanup**                              |
 
 ### 潜在真题：CRC和CheckSum的描述（学长回忆补全版）
 
@@ -2371,13 +2491,115 @@
 
 ---
 
+> 提示：这道题开始是2012年真题，但里面有一些和之前2010年重复的题，我进行了知识点的集合合并。
+>
+> ![image-20251229142204615](./assets/image-20251229142204615.png)
+>
+> **11. 选择题**：
+>
+> **一种试图使计算机资源对其预期用户不可用的攻击行为。其常见方法是使用外部通信请求使目标（受害者）机器饱和，使其无法响应合法流量，这种攻击被称为 (单选题 2分)**
+>
+> - A. 拒绝服务攻击 (Denial of service attack)
+> - B. 系统入侵 (System Intrusion)
+> - C. 缓冲区溢出攻击 (Buffer overflow attack)
+> - D. ARP 欺骗攻击 (ARP Spoofing attack)
+>
+> **选项分析**：
+> 题目描述的是典型的 **DoS (Denial of Service)** 攻击。攻击者通过发送海量的非法请求“淹没”服务器，消耗其 CPU、内存或带宽资源，导致正常用户无法访问。
+>
+> **答案选项**：**A**
 
+---
 
+> ![image-20251229143537763](./assets/image-20251229143537763.png)
+>
+> **12. 选择题**：
+>
+> **当我们打开一个 Word 文档时，发现电脑总是自动将该文件发送到另一个远程 FTP 服务器。其原因可能是该文档感染了 (单选题 2分)**
+>
+> - A. 病毒 (Virus)
+> - B. 特洛伊木马 (Trojan Horse)
+> - C. 陷阱门 (Trapdoor)
+> - D. FTP 匿名服务
+>
+> **选项分析**：
+> **特洛伊木马 (Trojan Horse)** 的典型特征是**伪装成合法的软件**或文件（如 Word 文档），但在后台秘密执行用户不知情的恶意操作，例如通过 FTP 协议窃取并外发用户文件。这个概念和历史故事（特洛伊木马）是一致的。病毒（Virus）更强调**自我复制**，陷阱门（Trapdoor）是**预留的后门**，而 FTP 匿名服务是**正常**的协议配置。
+>
+> **答案选项**：**B**
 
+---
 
+> ![image-20251229143631998](./assets/image-20251229143631998.png)
+>
+> ![image-20251229143738233](./assets/image-20251229143738233.png)
+>
+> **13. 选择题组：网络层设备与功能 (单选题 2分/道)**
+>
+> **(1) 防火墙的包过滤技术 (Packet Filtering) 通常工作在 OSI 参考模型的哪一层？**
+>
+> - A. 物理层
+> - B. 数据链路层
+> - C. 网络层
+> - D. 传输层
+>
+> **答案选项**：**C**
+>
+> **(2) 路由器的主要职责 (Main Responsibility) 是什么？**
+>
+> - A. 流量控制 (Traffic control)
+> - B. 冲突避免 (Collision avoidance)
+> - C. 执行安全策略 (Enforcing security)
+> - D. 路径选择 (Path determination)
+>
+> **答案选项**：**D**
+>
+> **综合分析**：
+> 路由器的核心功能是**路由选择（Path determination）**，即根据路由表为每一个 IP 数据报寻找最佳的出路径，它工作在**网络层**（第三层）。而**包过滤防火墙**同样工作在这一层，它通过检查数据包首部中的源 IP、目的 IP 等信息来决定是否放行，这被称为“三层过滤”。
 
+---
 
+**简单理解：路由器的使命**
+*   **路径选择 (Path determination)**：路由器收到数据包后，查看上面的目的 IP 地址，决定下一步该把它发往哪个路由器。
+*   **包过滤 (Packet Filtering)**：路由器根据规则核对数据包的来源和去向，如果是黑名单上的 IP，就直接拦截（丢弃）。
 
+>![image-20251229144159488](./assets/image-20251229144159488.png)
+>
+>**14. 选择题**：
+>**以下关于网络基本概念的描述中，错误的是 (单选题 2分)**
+>
+>- A. IP 首部中的 **TTL (生存时间)** 字段可以防止数据报在路由器之间无休止地循环。
+>- B. **公网 IP 地址 (Global IP)** 既可以用于互联网 (Internet)，也可以用于内网 (Intranet)。
+>- C. **网桥 (Bridge)** 工作在数据链路层，而 **路由器 (Router)** 工作在网络层。
+>- D. **ARP 协议** 可以用于实现从 IP 地址到 MAC 地址的映射。
+>
+>**选项分析**：
+>
+>**A 正确**：TTL 每经过一个路由器减 1，减到 0 报文就会被丢弃，防止了因路由环路导致的报文在网络中“转圈”。
+>
+>**B 错误**：这是一个概念上的区分。**公网 IP (Global IP)** 是在互联网上全球唯一的，用于公网通信；而 **内网 (Intranet)** 通常使用 **私有 IP 地址**（如 192.168.x.x）。
+>
+>**C 正确**：网桥/交换机工作在第二层（链路层），路由器工作在第三层（网络层）。提示：看之前总结的表格。
+>
+>**D 正确**：ARP 的核心功能就是通过目标 IP 询问其对应的物理地址 (MAC)。
+
+---
+
+> ![image-20251229144901820](./assets/image-20251229144901820.png)
+>
+> **15. 选择题**：
+>
+> **使用模 2 算术（异或运算）计算信息比特序列 `10100010` 的 CRC 校验码。已知生成多项式为 $G(x) = x^4 + x^2 + 1$，以下选项中正确的校验码（FCS）是 (单选题 2分)**
+>
+> - A. 1010
+> - B. 1011
+> - C. 1000
+> - D. 0110
+>
+> **选项分析**：
+>
+> ![94a84d8f28b267cb5185b8ba804c261](./assets/94a84d8f28b267cb5185b8ba804c261.jpg)
+>
+> **答案选项**：**C**
 
 
 
@@ -2462,8 +2684,8 @@
 >
 > *   **正常场景**：当主机需要上网时，会发送 **ARP 请求**询问网关的 MAC 地址，网关返回 **ARP 响应**。主机收到后将“网关 IP - 网关 MAC”存入本地 **ARP 缓存表**，后续流量根据此表发送。
 > *   **欺骗场景**：
->     *   **攻击手段**：攻击者向受害者发送大量伪造的 ARP 响应包，宣称：“**网关的 IP 对应的 MAC 地址是我（攻击者）的**”。
->     *   **攻击意图**：受害者误以为攻击者是网关，所有上网流量都会被错误地发往攻击者的电脑，攻击者可以借此**监听**密码。
+>     *   **攻击手段**：攻击者向受害者发送伪造的 ARP 响应包，宣称：“**网关的 IP 对应的 MAC 地址是我（攻击者）的**”。
+>     *   **攻击意图**：受害者误以为攻击者是网关，所有上网流量都会被错误地发往攻击者的电脑，攻击者可以借此盗取受害者信息。
 > *   **防御方法**：
 >     *   **静态绑定**：手动配置 **静态 ARP 条目**（如 `arp -s`），让**网关的IP和MAC**绑定。
 >     *   **DAI 技术**：开启 **动态 ARP 检测 (DAI)**，只允许符合记录的合法 ARP 包通过。
