@@ -914,6 +914,126 @@
 > | **14**   | `connect`          | //使用 TCP Socket 连接服务器                     | 连接函数用**connect**                                        |
 > | **15**   | `WSACleanup`       | //终止 Winsock                                   | **Windows Sockets API Cleanup**                              |
 
+### 潜在真题：Socket编程完形填空（另一年真题）
+
+> ![image-20251230132555081](./assets/image-20251230132555081.png)
+
+```cpp
+/*************************头文件中定义一些常量******************************/
+#define MAX_CLIENT   10                //同时服务的并发连接数上限
+#define MAX_BUF_SIZE  65535            //接收发送缓存区大小
+#define UDP_SRV_PORT  5555             //Server的UDP端口号
+#define TCP_SRV_PORT  1234             //Server的TCP端口号
+
+struct TcpThreadParam                  //传递给TCP线程的结构化参数
+{
+    SOCKET socket;    //套接字号
+    sockaddr_in addr; //地址信息
+};
+
+/**************************服务器端 TCP 侦听线程******************************/
+//初始化 winsock2 环境
+WSAStartup(MAKEWORD(2, 2), &wsa);
+//创建用于侦听的 TCP Socket
+SOCKET ListenSocket = socket(AF_INET, [ 1 ], IPPROTO_TCP);
+//... (获取主机名与IP) ...
+//填充本地 TCP Listen Socket 地址结构
+SOCKADDR_IN ListenAddr;
+ListenAddr.sin_family = AF_INET; 
+//将端口从主机序转换成网络序
+ListenAddr.sin_port = [ 2 ]((u_short)TCP_SRV_PORT);
+ListenAddr.sin_addr = *(in_addr*)pHostent->h_addr_list[0];
+//绑定 TCP 侦听端口
+bind([ 3 ], (sockaddr*)&ListenAddr, sizeof(ListenAddr));
+//监听
+listen(ListenSocket, SOMAXCONN);
+//在一个主循环中接收客户端连接请求并创建服务线程
+while (TRUE)
+{
+    //接受客户端连接请求
+    int iSockAddrLen = sizeof(sockaddr);
+    TcpSocket = accept(ListenSocket, (sockaddr*)&TcpClientAddr, &iSockAddrLen);
+    //TCP 线程数达到上限，停止接受新的 Client
+    if (TcpClientCount >= [ 4 ])
+    {
+        closesocket(TcpSocket);
+        continue;
+    }
+    //设置传递给线程的结构变量参数，创建服务线程
+    TcpThreadParam Param;
+    Param.socket = [ 5 ];      //与客户端实际连接的套接字号
+    Param.addr = [ 6 ];        //客户端地址结构
+    DWORD dwThreadId;
+    CreateThread(NULL, 0, TcpServeThread, &Param, 0, &dwThreadId);
+}
+//程序执行完毕后释放资源
+closesocket([ 7 ]);
+WSACleanup();
+
+/***********************服务器端 TCP 服务线程（子线程）************************/
+//从线程参数中获取 TCP 套接字
+SOCKET TcpSocket = ((TcpThreadParam*)lpParam)->socket;
+//...
+while (TRUE)
+{
+    //读取 Client 发来的数学表达式数据
+    TCPBytesReceived = [ 8 ](TcpSocket, ServerTCPBuf, sizeof(ServerTCPBuf), 0);
+    //出错或者 Client 端关闭
+    if ([ 9 ] == 0 || [ 10 ] == SOCKET_ERROR)
+    {
+        break; //结束 TCP 服务线程
+    }
+    //... (处理计算逻辑) ...
+    //将结果返回给客户端
+    [ 11 ](TcpSocket, ServerTCPBuf, strlen(ServerTCPBuf), 0);
+}
+closesocket(TcpSocket);
+
+/*************************服务器端 UDP 服务线程******************************/
+//创建 UDP Server socket, 该套接字为数据报套接字
+SOCKET UDPSrvSocket = socket(AF_INET, [ 12 ], IPPROTO_UDP);
+//...
+//填充本地 UDP Socket 地址结构
+UDPSrvAddr.sin_port = htons((u_short)[ 13 ]);
+//... (绑定端口代码略) ...
+while (TRUE)
+{
+    //接收 UDP 数据
+    int iSockAddrLen = sizeof(sockaddr);
+    recvfrom([ 14 ], ServerUDPBuf, sizeof(ServerUDPBuf), 0, (sockaddr*)&UDPClientAddr, &iSockAddrLen);
+    //... (反序处理代码略) ...
+    //发送 UDP 数据
+    sendto(UDPSrvSocket, ...);
+}
+
+/**********************************客户端程序******************************/
+//... (填充地址结构略) ...
+//使用 TCP Socket 连接服务器 
+[ 15 ](TCPSocket, (sockaddr*)&TCPServer, sizeof(TCPServer));
+```
+
+**题目分析与逻辑推导表：**
+
+| 空白序号 | 应填代码           | 相关注释                     | 深层逻辑                                                     |
+| :------- | :----------------- | :--------------------------- | :----------------------------------------------------------- |
+| **1**    | `SOCK_STREAM`      | //创建用于侦听的TCP Socket   | `IPPROTO_TCP` 说明是**TCP**而不是UDP，故`socket()`中填 **SOCK_STREAM**。 |
+| **2**    | `htons`            | //将端口从主机序转换成网络序 | 主机是host，网络是network，而端口16位是short，故为 **htons**。 |
+| **3**    | `ListenSocket`     | //绑定TCP侦听端口            | `bind` 的第一个参数必须是Socket对象，而代码中 **ListenSocket**是唯一选项 |
+| **4**    | `MAX_CLIENT`       | //TCP线程数达到上限          | 题目开头定义了最大连接数宏 **MAX_CLIENT**。                  |
+| **5**    | `TcpSocket`        | //与客户端实际连接的套接字号 | `TcpThreadParam.socket=？`按照语义只能是`TcpSocket`          |
+| **6**    | `TcpClientAddr`    | //客户端地址结构             | `TcpThreadParam.addr=？`按照语义只能是`TcpClientAddr`        |
+| **7**    | `ListenSocket`     | //程序执行完毕后释放资源     | `closesocket`的第一个参数必须是Socket对象，而代码中 **ListenSocket**是唯一选项 |
+| **8**    | `recv`             | //读取Client发来的...数据    | TCP 协议下的接收函数是 **recv**。                            |
+| **9**    | `TCPBytesReceived` | //出错或者Client端关闭       | 使用函数返回值**TCPBytesReceived**和0进行比较，判断Client端关闭 |
+| **10**   | `TCPBytesReceived` | //出错或者Client端关闭       | 使用函数返回值**TCPBytesReceived**和`SOCKET_ERROR`进行比较，判断出错 |
+| **11**   | `send`             | //将结果返回给客户端         | TCP 协议下的发送函数是 **send**。                            |
+| **12**   | `SOCK_DGRAM`       | //该套接字为数据报套接字     | IPPROTO_UDP说明是**UDP**而不是TCP ，故`socket()`中填 **SOCK_DGRAM**。 |
+| **13**   | `UDP_SRV_PORT`     | //填充本地UDP Socket地址     | 题目开头定义的 UDP 端口宏为 **UDP_SRV_PORT** 。              |
+| **14**   | `UDPSrvSocket`     | //接收UDP数据                | `recvfrom` 的第一个参数必须是Socket对象，而代码中**UDPSrvSocket**是唯一选项 |
+| **15**   | `connect`          | //使用TCP Socket连接服务器   | **连接**只能对应 **connect**。                               |
+
+---
+
 ### 潜在真题：CRC和CheckSum的描述（学长回忆补全版）
 
 > ![image-20251223101741643](./assets/image-20251223101741643.png)
